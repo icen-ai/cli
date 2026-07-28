@@ -3,6 +3,8 @@ name: publish
 # 通过 GitHub Release 发布到 npm：Trusted Publishing（OIDC），无需 npm token。
 # 前提：npmjs.com 包设置里已配置 Trusted Publisher（org icen-ai / repo cli / workflow publish.yml）。
 on:
+  push:
+    tags: ['v*']
   release:
     types: [published]
 
