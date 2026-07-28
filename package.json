@@ -2,6 +2,12 @@
   "name": "@icen.ai/cli",
   "version": "0.1.1",
   "description": "icen.ai skill CLI — install and manage AI agent skills from skill.icen.ai",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/icen-ai/cli.git"
+  },
+  "homepage": "https://github.com/icen-ai/cli#readme",
+  "bugs": "https://github.com/icen-ai/cli/issues",
   "type": "module",
   "bin": {
     "icen": "./dist/cli.mjs"
