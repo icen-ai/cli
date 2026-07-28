@@ -1,0 +1,30 @@
+name: publish
+
+# 通过 GitHub Release 发布到 npm：Trusted Publishing（OIDC），无需 npm token。
+# 前提：npmjs.com 包设置里已配置 Trusted Publisher（org icen-ai / repo cli / workflow publish.yml）。
+on:
+  release:
+    types: [published]
+
+permissions:
+  id-token: write # OIDC，必需
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24' # npm CLI >= 11.5.1（trusted publishing 要求）
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install & build
+        run: bun install && bun run build
+
+      - name: Publish to npm
+        run: npm publish --access public
