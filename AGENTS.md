@@ -70,6 +70,27 @@ CLI 与 skill 仓库的 `web/public/install.sh` / `install.ps1` 共享以下协�
 - Windows 兼容：文件路径一律 `node:path`；dirHash 的相对路径统一转正斜杠再排序（与 Linux CI 构建索引的口径一致）。
 - CI：`.github/workflows/ci.yml`，push main → setup-bun → bun install → build → `node dist/cli.mjs --help` 冒烟。
 
+## 发布（npm，OIDC Trusted Publishing）
+
+**只允许 CI 发布，不允许任何 token**。npm 包设置已开 Trusted Publisher（GitHub Actions：`icen-ai/cli` + `publish.yml`，仅 `npm publish` 权限）且 Publishing access =「Require 2FA and disallow tokens」——本地 `npm publish` 会被拒，这是刻意的。
+
+发布流程：
+
+```bash
+# 1. 改版本号（package.json 的 version；CLI 运行时版本号从 package.json 读取，不要手写别处）
+# 2. commit + push main
+# 3. 打 tag 推送即自动发布（或发 GitHub Release，等价）
+git tag v0.1.3 && git push origin v0.1.3
+```
+
+`.github/workflows/publish.yml`：setup-bun 构建 → `npm publish --access public`（npm CLI 自动检测 OIDC，provenance 溯源签名自动生成）。
+
+注意事项：
+
+- `package.json` 的 `repository.url` 必须指向 `github.com/icen-ai/cli`——provenance 会校验仓库归属，不匹配 422 拒发。改仓库地址时同步这里。
+- npm 账号 2FA 是 passkey-only（无 TOTP、bypass token 已被 npm 新政策禁用）。万不得已要本地手动发布：需要 npm ≥ 11.16 + Node ≥ 22.14，EOTP 报错后按提示在浏览器完成安全密钥验证拿一次性口令 `--otp=`；正常情况永远不要这样做，走 CI。
+- 首发（包还不存在时）无法走 OIDC（npm 没有 pending publisher），0.1.0 就是手动首发的；之后所有版本都走 tag。
+
 ## 留待后续版本
 
 - `login` / `logout`（OAuth PKCE，等 accounts.icen.ai 授权码流程）
