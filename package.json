@@ -1,6 +1,6 @@
 {
   "name": "@icen.ai/cli",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "icen.ai skill CLI — install and manage AI agent skills from skill.icen.ai",
   "repository": {
     "type": "git",
