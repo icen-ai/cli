@@ -10,7 +10,13 @@
 
 ---
 
-## 0. 前置条件（一次性，已完成，无需重做）
+## 0. 工具准备
+
+- **gh CLI**（GitHub 官方）：`gh auth login`（需 `repo` scope）。建仓库、转 Public、写描述、发 Release、看 CI 日志全部一行命令，不用开浏览器。
+- **npm CLI ≥ 11.16**（配套 Node ≥ 22.14，Node 24.18 自带）：`npm trust` 子命令从 11.5.1 起可用，Trusted Publisher 配置也能全程命令行完成。
+- 本机环境若有 `NPM_CONFIG_REGISTRY` 指向镜像源，所有 npm 命令显式带 `--registry=https://registry.npmjs.org`。
+
+## 0.1 前置条件（一次性，已完成，无需重做）
 
 - npm org `@icen.ai` 已存在，thatcompany 是 owner
 - npm 账号 2FA 已开（安全密钥），「Require 2FA for write actions」已开
@@ -18,7 +24,15 @@
 
 ## 1. 仓库与 package.json 要求
 
-- 仓库必须 **Public**（npm provenance 校验需要公开仓库；Settings → Danger Zone → Change visibility，GitHub 会要求 sudo 验证）
+- 建仓库并推送（gh 一行，直接 Public）：
+  ```bash
+  gh repo create icen-ai/<repo> --public --source . --push
+  # 已有仓库转 Public：
+  gh repo edit icen-ai/<repo> --visibility public
+  # 描述与主页：
+  gh repo edit icen-ai/<repo> --description "..." --homepage "https://..."
+  ```
+  仓库必须 **Public**（npm provenance 校验需要公开仓库）
 - `package.json` 必填项：
 
 ```jsonc
@@ -98,29 +112,40 @@ npm 没有 pending publisher——**Trusted Publisher 配置挂在包的设置�
 
 ## 4. 配置 Trusted Publisher（首发后立刻做）
 
-npmjs.com → 包页面 → Settings tab（每次进要安全密钥验证）→ **Trusted Publisher**：
+**命令行方式（推荐，npm ≥ 11.5.1）**：
 
-- Publisher: **GitHub Actions**
-- Organization or user: `icen-ai`
-- Repository: `<repo>`
-- Workflow filename: `publish.yml`（只写文件名，不带路径）
-- Environment name: 留空
-- Allowed actions: 勾 **Allow npm publish**
+```bash
+npm trust github @icen.ai/<pkg> --file publish.yml --repo icen-ai/<repo> --allow-publish \
+  --registry=https://registry.npmjs.org
+# 可能要求安全密钥验证（账号变更类操作），按提示在浏览器完成
+npm trust list @icen.ai/<pkg>   # 验证
+```
 
-同页 **Publishing access** 选「**Require two-factor authentication and disallow tokens (recommended)**」
-→ Update Package Settings。此后 token 一律拒发，只有这条 CI 能发。
+**网页方式（等价）**：npmjs.com → 包页面 → Settings tab → **Trusted Publisher**：
+Publisher = GitHub Actions；Organization or user = `icen-ai`；Repository = `<repo>`；
+Workflow filename = `publish.yml`；Environment 留空；勾 **Allow npm publish**。
+
+**最后一步只能网页做**（暂无 CLI）：同页 **Publishing access** 选
+「**Require two-factor authentication and disallow tokens (recommended)**」→ Update Package Settings。
+此后 token 一律拒发，只有这条 CI 能发。
 
 ## 5. 日常发布（全自动）
 
 ```bash
 # 1. 改 package.json version（如 0.1.1）
 # 2. commit + push main
-# 3. 打 tag 推送
+# 3. 打 tag 推送（或 gh release create v0.1.1，等价）
 git tag v0.1.1 && git push origin v0.1.1
 # publish.yml 自动构建发布，npm 包页面会出现 provenance 徽章
 ```
 
-发布失败时先看 Actions 日志，常见原因见下。
+观察与排障（gh）：
+
+```bash
+gh run list --workflow=publish.yml     # 最近运行
+gh run watch                           # 实时跟随
+gh run view --log-failed               # 只看失败步骤日志
+```
 
 ## 6. 踩过的坑（排障索引）
 
@@ -135,11 +160,12 @@ git tag v0.1.1 && git push origin v0.1.1
 
 ## 7. 检查清单（新项目照做）
 
-- [ ] 仓库 Public + 初始代码推 main
+- [ ] `gh repo create icen-ai/<repo> --public --source . --push`（Public + 推送一步完成）
 - [ ] package.json：name/version/repository/publishConfig/files
 - [ ] `.github/workflows/ci.yml` + `publish.yml`
 - [ ] 手动首发 v0.1.0（第 3 节）
-- [ ] npm 包设置：Trusted Publisher + disallow tokens（第 4 节）
-- [ ] `git tag v0.1.1` 验证全自动链路 + provenance 徽章
+- [ ] `npm trust github @icen.ai/<pkg> --file publish.yml --repo icen-ai/<repo> --allow-publish`
+- [ ] 网页设 disallow tokens（唯一必须开浏览器的一步）
+- [ ] `git tag v0.1.1 && git push origin v0.1.1` 验证全自动链路 + provenance 徽章
 - [ ] 临时 token（如果首发建过）立即吊销
 - [ ] AGENTS.md 补一节「发布」指向本文档
