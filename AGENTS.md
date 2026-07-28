@@ -72,6 +72,8 @@ CLI 与 skill 仓库的 `web/public/install.sh` / `install.ps1` 共享以下协�
 
 ## 发布（npm，OIDC Trusted Publishing）
 
+> 完整操作手册（含新项目接入步骤、首发流程、排障索引）见 `docs/publish-npm.md`——新包（如 `@icen.ai/ui`）照它执行。
+
 **只允许 CI 发布，不允许任何 token**。npm 包设置已开 Trusted Publisher（GitHub Actions：`icen-ai/cli` + `publish.yml`，仅 `npm publish` 权限）且 Publishing access =「Require 2FA and disallow tokens」——本地 `npm publish` 会被拒，这是刻意的。
 
 发布流程：
