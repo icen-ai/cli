@@ -5,7 +5,7 @@ import { getConfig } from '../lib/config.js';
 import { setupLog, info, success, fail, guard } from '../lib/log.js';
 import { writeCredentials } from '../lib/auth.js';
 
-const AUTH_URL = 'https://accounts.icen.ai/cli';
+const AUTH_URL = 'https://auth.icen.ai/cli';
 const TIMEOUT_MS = 5 * 60 * 1000; // 5 分钟等用户在浏览器授权
 
 /** 用 OS 默认浏览器打开 URL */
@@ -70,7 +70,7 @@ export default defineCommand({
 
     // 保存 key
     writeCredentials(cfg, { apiKey: key });
-    success(`✓ 登录成功，API key 已保存到 ~/.icen/credentials.json`);
-    success(`  运行 icen whoami 验证账号信息`);
+    success('✓ 登录成功');
+    success('  运行 icen whoami 查看账号信息');
   }),
 });

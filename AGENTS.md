@@ -69,7 +69,7 @@ CLI 与 skill 仓库的 `web/public/install.sh` / `install.ps1` 共享以下协�
 - 凭证优先级：`--key` flag > `ICEN_KEY` > `~/.icen/credentials.json`（`{ "apiKey": "ICEN-XXXX-XXXX" }`，mode 0600）。
 - key 格式：`ICEN-[A-Z0-9]{4}-[A-Z0-9]{4}`。
 - `whoami` 在线验证走 `GET https://auth.icen.ai/api/oauth/validate`（`Authorization: ApiKey <key>`），失败降级提示不阻断。
-- `icen login`：启动本地回调服务器 → 打开浏览器到 `accounts.icen.ai/cli?port=<port>` → 用户授权后 accounts 页面生成/重置 API key 并 redirect 回 CLI → 自动保存到 credentials.json。
+- `icen login`：启动本地回调服务器 → 打开浏览器到 `auth.icen.ai/cli?port=<port>` → 用户授权后页面生成/重置 API key 并 redirect 回 CLI → 自动保存到 credentials.json。
 - `icen logout`：仅清除本地 credentials.json，不影响 accounts 侧 session。
 
 ## 其他约定
@@ -103,9 +103,9 @@ git tag v0.1.3 && git push origin v0.1.3
 
 ## login / logout（浏览器授权流程）
 
-`icen login` 启动本地回调服务器 → 打开浏览器到 `accounts.icen.ai/cli?port=<port>` → 用户授权后 accounts 页面生成/重置 API key 并 redirect 到 `http://localhost:<port>/?key=<apikey>` → CLI 接收回调、保存到 credentials.json。
+`icen login` 启动本地回调服务器 → 打开浏览器到 `auth.icen.ai/cli?port=<port>` → 用户授权后页面生成/重置 API key 并 redirect 到 `http://localhost:<port>/?key=<apikey>` → CLI 接收回调、保存到 credentials.json。
 
-- accounts 侧授权页：`accounts.icen.ai/cli`（accounts 仓库 `src/pages/cli.astro`），检测 session → 已登录则显示授权按钮 → 点击后 `POST /api/keys`（新建）或 `POST /api/keys/rotate`（已有 key 则重置）→ redirect 回调。
+- 授权页 `auth.icen.ai/cli`（accounts 仓库 `src/pages/cli.astro`，三域名共路由），检测 session → 已登录则显示授权按钮 → 点击后 `POST /api/keys`（新建）或 `POST /api/keys/rotate`（已有 key 则重置）→ redirect 回调。
 - **已有 key 的用户授权会重置旧 key**（key 明文不落库，无法取回，只能 rotate）。这是刻意的设计。
 - CLI 端 5 分钟超时自动退出。
 
