@@ -61,13 +61,10 @@ export default defineCommand({
     if (args.json) {
       out({ authenticated: true, key: maskKey(rk.key), source: rk.source, registry: cfg.baseUrl, validated: true, account });
     } else {
-      print('账号信息：');
-      print(
-        JSON.stringify(account, null, 2)
-          .split('\n')
-          .map((l) => `  ${l}`)
-          .join('\n'),
-      );
+      const acc = account as Record<string, unknown>;
+      print(`账号：${acc.username || '?'}（${acc.email || '?'}）`);
+      if (acc.displayName) print(`昵称：${acc.displayName}`);
+      print(`ID：${acc.userId || '?'}`);
     }
   }),
 });
