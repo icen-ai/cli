@@ -19,7 +19,7 @@ export default defineCommand({
       return;
     }
     if (entries.length === 0) {
-      print('尚未安装任何 skill。用 icen add <id> 安装。');
+      print('尚未安装任何 skill。用 icen skill add <id> 安装。');
       return;
     }
     print(`已安装 ${entries.length} 个 skill（${lockPath(cfg)}）：`);

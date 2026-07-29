@@ -4,6 +4,7 @@ import { setupLog, success, out, fail, info, guard } from '../lib/log.js';
 import { shortId } from '../lib/registry.js';
 import { readLock, removeLockEntry } from '../lib/lock.js';
 import { removeSkillDirs } from '../lib/installer.js';
+import { detectTargetDirs } from '../lib/platforms.js';
 
 export default defineCommand({
   meta: { name: 'remove', description: '卸载 skill（含各平台目录同步删除）' },
@@ -25,7 +26,8 @@ export default defineCommand({
       fail(`「${args.id}」未安装（lock 文件中无记录）。`);
     }
 
-    const removed = removeSkillDirs(cfg, name, { sync: args.sync });
+    const dirs = detectTargetDirs(cfg, { sync: args.sync });
+    const removed = removeSkillDirs(cfg, name, { dirs });
     removeLockEntry(cfg, name);
     for (const dir of removed) info(`  已删除 ${dir}`);
 

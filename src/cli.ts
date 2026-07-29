@@ -1,27 +1,23 @@
 import { defineCommand, runMain } from 'citty';
 import pkg from '../package.json' with { type: 'json' };
-import add from './commands/add.js';
-import remove from './commands/remove.js';
-import list from './commands/list.js';
-import update from './commands/update.js';
-import search from './commands/search.js';
-import key from './commands/key.js';
+import skill from './commands/skill.js';
+import login from './commands/login.js';
+import logout from './commands/logout.js';
 import whoami from './commands/whoami.js';
+import key from './commands/key.js';
 
 const main = defineCommand({
   meta: {
     name: 'icen',
     version: pkg.version,
-    description: 'icen.ai skill CLI — 从 skill.icen.ai 安装和管理 AI agent skills',
+    description: 'icen.ai CLI — skill 管理与生态工具',
   },
   subCommands: {
-    add,
-    remove,
-    list,
-    update,
-    search,
-    key,
+    skill,
+    login,
+    logout,
     whoami,
+    key,
   },
 });
 

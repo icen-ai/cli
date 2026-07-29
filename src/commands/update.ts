@@ -3,6 +3,7 @@ import { getConfig } from '../lib/config.js';
 import { setupLog, info, warn, out, fail, guard } from '../lib/log.js';
 import { fetchIndex, resolveSkill, shortId } from '../lib/registry.js';
 import { readLock } from '../lib/lock.js';
+import { detectTargetDirs } from '../lib/platforms.js';
 import { performInstall, type AddFlags } from './add.js';
 
 export default defineCommand({
@@ -28,7 +29,7 @@ export default defineCommand({
       const found = Object.keys(lock).find((k) => k === q || k === `icen-${q}` || shortId(k) === q);
       if (!found) {
         if (args.json) out({ error: `未安装: ${args.id}` });
-        fail(`「${args.id}」未安装，无法更新。用 icen add ${args.id} 安装。`);
+        fail(`「${args.id}」未安装，无法更新。用 icen skill add ${args.id} 安装。`);
       }
       names = [found];
     } else {
@@ -41,6 +42,8 @@ export default defineCommand({
     }
 
     const results = { updated: [] as string[], upToDate: [] as string[], skipped: [] as string[] };
+    // update 统一用检测到的平台目录（旧 --sync 行为），算一次复用
+    const dirs = detectTargetDirs(cfg, { sync: args.sync });
     for (const name of names) {
       const skill = resolveSkill(index, name);
       if (!skill) {
@@ -54,7 +57,7 @@ export default defineCommand({
         results.upToDate.push(name);
         continue;
       }
-      await performInstall(cfg, skill, args as AddFlags, oldHash);
+      await performInstall(cfg, skill, { ...args, dirs } as AddFlags, oldHash);
       results.updated.push(name);
     }
 

@@ -6,7 +6,6 @@ import { x as extractTar } from 'tar';
 import type { Config } from './config.js';
 import type { SkillEntry } from './registry.js';
 import { setLockEntry } from './lock.js';
-import { detectTargetDirs } from './platforms.js';
 
 // ---------------------------------------------------------------------------
 // hash 校验说明（重要）：
@@ -80,7 +79,7 @@ export async function installSkill(
   cfg: Config,
   skill: SkillEntry,
   tarball: Buffer,
-  opts: { sync?: boolean } = {},
+  opts: { dirs: string[] },
 ): Promise<InstallResult> {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'icen-cli-'));
   try {
@@ -110,7 +109,7 @@ export async function installSkill(
       );
     }
 
-    const dirs = detectTargetDirs(cfg, opts);
+    const dirs = opts.dirs;
     for (const dir of dirs) {
       fs.mkdirSync(dir, { recursive: true });
       const dest = path.join(dir, skill.name);
@@ -129,10 +128,60 @@ export async function installSkill(
   }
 }
 
-/** 从所有目标目录删除 skill 目录（remove 用） */
-export function removeSkillDirs(cfg: Config, name: string, opts: { sync?: boolean } = {}): string[] {
+/** URL 安装：解压 tar.gz，自动探测顶层目录名作为 skill name，不做 hash 校验 */
+export async function installSkillFromUrl(
+  cfg: Config,
+  tarball: Buffer,
+  opts: { dirs: string[] },
+): Promise<InstallResult & { name: string }> {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'icen-cli-'));
+  try {
+    const tgz = path.join(tmp, 'pkg.tar.gz');
+    fs.writeFileSync(tgz, tarball);
+    await extractTar({ file: tgz, cwd: tmp });
+
+    // 探测顶层目录：tar.gz 里应该只有一个顶层文件夹
+    const entries = fs.readdirSync(tmp).filter((e) => !e.endsWith('.tar.gz') && !e.endsWith('.tgz'));
+    let name: string | undefined;
+    for (const e of entries) {
+      if (fs.statSync(path.join(tmp, e)).isDirectory()) {
+        name = e;
+        break;
+      }
+    }
+    if (!name) {
+      // fallback：找 SKILL.md 所在的顶层目录
+      for (const e of entries) {
+        if (fs.existsSync(path.join(tmp, e, 'SKILL.md'))) {
+          name = e;
+          break;
+        }
+      }
+    }
+    if (!name) throw new Error('tar.gz 内未找到有效的 skill 目录（需包含 SKILL.md）');
+
+    const src = path.join(tmp, name);
+    const dirs = opts.dirs;
+    for (const dir of dirs) {
+      fs.mkdirSync(dir, { recursive: true });
+      const dest = path.join(dir, name);
+      const tmpDest = path.join(dir, `.icen-tmp-${name}-${process.pid}`);
+      fs.rmSync(tmpDest, { recursive: true, force: true });
+      fs.cpSync(src, tmpDest, { recursive: true });
+      fs.rmSync(dest, { recursive: true, force: true });
+      fs.renameSync(tmpDest, dest);
+    }
+
+    return { dirs, verify: 'skipped' as VerifyResult, name };
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+}
+
+/** 从指定目录列表删除 skill 目录（remove 用） */
+export function removeSkillDirs(cfg: Config, name: string, opts: { dirs: string[] }): string[] {
   const removed: string[] = [];
-  for (const dir of detectTargetDirs(cfg, opts)) {
+  for (const dir of opts.dirs) {
     const dest = path.join(dir, name);
     if (fs.existsSync(dest)) {
       fs.rmSync(dest, { recursive: true, force: true });

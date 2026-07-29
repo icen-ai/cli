@@ -3,7 +3,7 @@ import { getConfig } from '../lib/config.js';
 import { setupLog, print, warn, out, guard } from '../lib/log.js';
 import { resolveKey } from '../lib/auth.js';
 
-const VALIDATE_URL = 'https://accounts.icen.ai/api/oauth/validate';
+const VALIDATE_URL = 'https://auth.icen.ai/api/oauth/validate';
 
 function maskKey(key: string): string {
   // ICEN-A1B2-C3D4 → ICEN-A1B2-****
