@@ -2,6 +2,29 @@
 
 本文件面向 AI 编程助手，介绍本仓库的结构、构建流程与开发约定。
 
+## icen.ai 生态
+
+本仓库是 icen.ai 生态的一部分。核心项目：
+
+| 项目 | 职责 | 域名 |
+|------|------|------|
+| accounts | 账户/鉴权/支付/权益 | auth/accounts/pay.icen.ai |
+| skill | AI skill 站 + registry | skill.icen.ai |
+| cli | npm @icen.ai/cli | — |
+| ui | 共享 UI 组件库 | — |
+
+**域名分工**（auth/accounts/pay 路由到同一个 accounts Pages 项目）：
+- auth.icen.ai — 登录/SSO/JWT/CLI 授权
+- accounts.icen.ai — 账户管理/API key/订单
+- pay.icen.ai — 支付/定价
+
+**跨项目联动**（改一侧需同步另一侧）：
+- CLI ↔ skill：lock 格式、hash 算法、PLATFORM_ROOTS（installer.ts ↔ install.sh 逐字一致）
+- CLI ↔ accounts：login 流程走 auth.icen.ai/cli，whoami 走 auth.icen.ai/api/oauth/validate
+- skill ↔ accounts：SSO + 付费 skill 下载鉴权（/k/）+ 购买跳转 pay.icen.ai
+
+> 完整生态文档（部署流程、D1、密钥等）见上级目录 `../AGENTS.md`（如有完整工作区）。
+
 ## 项目概览
 
 icen.ai skill 生态的统一 CLI，npm 包名 `@icen.ai/cli`，bin 名 `icen`。从静态 registry（默认 <https://skill.icen.ai>）安装/更新/卸载 AI agent skills，与官方 `install.sh` / `install.ps1` 完全互操作。
