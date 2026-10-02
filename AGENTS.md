@@ -126,7 +126,7 @@ git tag v0.1.3 && git push origin v0.1.3
 
 ## login / logout（浏览器授权流程）
 
-`icen login` 启动本地回调服务器 → 打开浏览器到 `auth.icen.ai/cli?port=<port>` → 用户授权后页面生成/重置 API key 并 redirect 到 `http://localhost:<port>/?key=<apikey>` → CLI 接收回调、保存到 credentials.json。
+`icen login` 启动本地回调服务器 → 打开浏览器到 `auth.icen.ai/cli?port=<port>` → 用户授权后页面生成/重置 API key 并 POST 到 `http://localhost:<port>/key`（JSON body，不进浏览器历史；旧版页面降级 redirect `/?key=`，CLI 双协议兼容）→ CLI 接收回调、保存到 credentials.json。
 
 - 授权页 `auth.icen.ai/cli`（accounts 仓库 `src/pages/cli.astro`，三域名共路由），检测 session → 已登录则显示授权按钮 → 点击后 `POST /api/keys`（新建）或 `POST /api/keys/rotate`（已有 key 则重置）→ redirect 回调。
 - **已有 key 的用户授权会重置旧 key**（key 明文不落库，无法取回，只能 rotate）。这是刻意的设计。
